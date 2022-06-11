@@ -14,7 +14,7 @@ export class FileService{
     try {
       const fileExtension = type === FileType.AUDIO ? file.originalname.split('.').pop() : 'jpg'
       const fileName = uuid.v4() + '.' + fileExtension
-      const filePath = path.resolve(__dirname, '..', 'static', type)
+      const filePath = path.resolve('/media/uploads/', type)
       if(!fs.existsSync(filePath)) fs.mkdirSync(filePath, {recursive: true})
       if(type === FileType.COVER){
         const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);

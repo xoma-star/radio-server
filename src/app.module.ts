@@ -11,7 +11,7 @@ import {UserModule} from "./user/user.module";
         FileModule,
         UserModule,
         ServeStaticModule.forRoot({
-            rootPath: path.resolve(__dirname, 'static'),
+            rootPath: path.resolve('/media/uploads/'),
             serveStaticOptions: {index: false}
         })
     ]
