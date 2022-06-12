@@ -15,7 +15,7 @@ import { TokenModule } from './token/token.module';
         ServeStaticModule.forRoot({
             rootPath: path.resolve('/media/uploads/'),
             serveStaticOptions: {index: false, setHeaders: (res) => {
-                res.set('Access-Control-Allow-Origin', 'https://cd-rom.vercel.app');
+                res.set('Access-Control-Allow-Origin', '*');
             }}
         }),
         AuthModule,
