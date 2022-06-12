@@ -14,9 +14,7 @@ import { TokenModule } from './token/token.module';
         UserModule,
         ServeStaticModule.forRoot({
             rootPath: path.resolve('/media/uploads/'),
-            serveStaticOptions: {index: false, setHeaders: (res) => {
-                res.set('Access-Control-Allow-Origin', '*');
-            }}
+            serveStaticOptions: {index: false}
         }),
         AuthModule,
         TokenModule

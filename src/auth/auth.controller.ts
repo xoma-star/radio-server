@@ -11,14 +11,14 @@ export class AuthController{
     @HttpCode(HttpStatus.OK)
     async loginLocal(@Body() dto: AuthLoginDto, @Res() res: Response){
         const {accessToken, refreshToken, id} = await this.authService.loginLocal(dto)
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000})
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 14 * 24 * 60 * 60 * 1000, secure: true})
         res.send({accessToken, refreshToken, id})
     }
     @Post('signup')
     @HttpCode(HttpStatus.CREATED)
     async signupLocal(@Body() dto: AuthSignUpDto, @Res() res: Response){
         const {accessToken, refreshToken, id} = await this.authService.signupLocal(dto)
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000})
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 14 * 24 * 60 * 60 * 1000, secure: true})
         res.send({accessToken, refreshToken, id})
     }
     @UseGuards(AtGuard)
@@ -35,7 +35,7 @@ export class AuthController{
     @HttpCode(HttpStatus.OK)
     async refresh(@Req() req: Request, @Res() res: Response){
         const {accessToken, refreshToken, id} = await this.authService.refresh(req?.cookies?.refreshToken)
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000})
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 14 * 24 * 60 * 60 * 1000, secure: true})
         res.send({accessToken, refreshToken, id})
     }
 

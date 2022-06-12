@@ -6,11 +6,10 @@ const start = async () => {
   try {
     const PORT = process.env.PORT || 5000
     const app = await NestFactory.create(AppModule)
-    const whitelist = ['http://localhost:3000', 'https://cd-rom.vercel.app', 'http://localhost:5000', 'https://xoma-star.space']
+    const whitelist = ['http://localhost:3000', 'https://cd-rom.vercel.app']
     app.use(cookieParser())
     app.enableCors({credentials: true, origin: function (origin, callback) {
-      console.log(origin)
-        if (whitelist.indexOf(origin) !== -1) {
+        if (whitelist.indexOf(origin) !== -1 || typeof origin === 'undefined') {
           callback(null, true)
         } else {
           callback(new Error('Not allowed by CORS'))
