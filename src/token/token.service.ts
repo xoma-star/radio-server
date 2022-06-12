@@ -19,6 +19,7 @@ export class TokenService {
     }
 
     async deleteTokens(token: string){
+        if(!token) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
         const c = collection(firestore, 'tokens')
         const q = query(c, where('refreshToken', '==', token), limit(1))
         const ref = await getDocs(q)
@@ -27,6 +28,7 @@ export class TokenService {
     }
 
     async verifyRefreshToken(token: string){
+        if(!token) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
         const c = collection(firestore, 'tokens')
         const q = query(c, where('refreshToken', '==', token), limit(1))
         const ref = await getDocs(q)
@@ -35,6 +37,7 @@ export class TokenService {
     }
 
     async addTokenToFirestore(id: string, token: string){
+        if(!token || !id) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
         const c = collection(firestore, 'tokens')
         const q = query(c, where('id', '==', id), limit(1))
         const ref = await getDocs(q)
