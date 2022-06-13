@@ -12,7 +12,8 @@ export class TrackService{
         author: dto.author,
         path: audio,
         cover: cover,
-        uploadedBy: uid
+        uploadedBy: uid,
+        uploadTime: new Date().getTime()
       }
       const docRef = await addDoc(collection(firestore, 'tracks'), data)
       return {...data, id: docRef.id}
@@ -20,7 +21,7 @@ export class TrackService{
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
-  async getAll(uid: string){
+  async getAll(){
     try {
       const d = await getDocs(query(collection(firestore, 'tracks')))
       return d.docs.map(v => {return {...v.data(), id: v.id}})

@@ -13,11 +13,11 @@ export class TrackController{
       private fileService: FileService
   ) {
   }
-  @UseGuards(AtGuard)
   @Get()
-  getAll(@Req() req: Request){
-    return this.trackService.getAll(req.user['id'])
+  getAll(){
+    return this.trackService.getAll()
   }
+  @UseGuards(AtGuard)
   @Get(':id')
   getOne(@Param('id') id: string){
     return this.trackService.getOne(id)
