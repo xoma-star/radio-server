@@ -17,7 +17,6 @@ export class TrackController{
   getAll(){
     return this.trackService.getAll()
   }
-  @UseGuards(AtGuard)
   @Get(':id')
   getOne(@Param('id') id: string){
     return this.trackService.getOne(id)
