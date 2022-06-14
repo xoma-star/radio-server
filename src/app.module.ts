@@ -6,6 +6,7 @@ import {FileModule} from "./file/file.module";
 import {UserModule} from "./user/user.module";
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
+import { PlaylistModule } from './playlist/playlist.module';
 
 @Module({
     imports: [
@@ -14,10 +15,12 @@ import { TokenModule } from './token/token.module';
         UserModule,
         ServeStaticModule.forRoot({
             rootPath: path.resolve('/media/uploads/'),
-            serveStaticOptions: {index: false}
+            serveStaticOptions: {index: false},
+            renderPath: '/media/'
         }),
         AuthModule,
-        TokenModule
+        TokenModule,
+        PlaylistModule
     ]
 })
 export class AppModule {}

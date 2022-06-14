@@ -34,7 +34,8 @@ export class AuthService {
             const data = {
                 ...dto,
                 signUpDate: new Date().getTime(),
-                password: createHmac('sha256', dto.password).digest('hex')
+                password: createHmac('sha256', dto.password).digest('hex'),
+                playlists: []
             }
             const ref = collection(firestore, 'users')
             const checkName = await getDocs(query(ref, where('name', '==', data.name), limit(1)))
