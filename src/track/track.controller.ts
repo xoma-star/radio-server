@@ -1,4 +1,15 @@
-import {Body, Controller, Get, Param, Post, Req, UploadedFiles, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import {TrackService} from "./track.service";
 import {FileFieldsInterceptor} from "@nestjs/platform-express";
 import {CreateTrackDto} from "./dto/create-track.dto";
@@ -6,7 +17,7 @@ import {FileService, FileType} from "../file/file.service";
 import {AtGuard} from "../auth/guards";
 import {Request} from 'express'
 
-@Controller('/tracks')
+@Controller('tracks')
 export class TrackController{
   constructor(
       private trackService: TrackService,
@@ -17,12 +28,16 @@ export class TrackController{
   getAll(){
     return this.trackService.getAll()
   }
+  @Get('getMultiple')
+  getMultiple(@Query('tracks') tracks: string){
+    return this.trackService.getMultiple(tracks.split(','))
+  }
   @Get(':id')
   getOne(@Param('id') id: string){
     return this.trackService.getOne(id)
   }
   @UseGuards(AtGuard)
-  @Post('/add')
+  @Post('add')
   @UseInterceptors(FileFieldsInterceptor([
     {name: 'audio', maxCount: 1}
   ]))

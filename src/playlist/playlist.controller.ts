@@ -1,4 +1,4 @@
-import {Body, Controller, Post, Req, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, Req, UseGuards} from '@nestjs/common';
 import {AtGuard} from "../auth/guards";
 import {CreatePlaylistDto} from "./dto/create-playlist.dto";
 import {PlaylistService} from "./playlist.service";
@@ -18,5 +18,9 @@ export class PlaylistController {
     @Post('add')
     add(@Body() dto: AddToPlaylistDto, @Req() req: Request){
         return this.playlistService.addToPlaylist(dto, req.user['id'])
+    }
+    @Get(':id')
+    getOne(@Param('id') id: string){
+        return this.playlistService.get(id)
     }
 }
