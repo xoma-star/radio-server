@@ -15,7 +15,10 @@ import { PlaylistModule } from './playlist/playlist.module';
         UserModule,
         ServeStaticModule.forRoot({
             rootPath: path.resolve('/media/uploads/'),
-            serveStaticOptions: {index: false},
+            serveStaticOptions: {
+                index: false,
+                immutable: true
+            },
             serveRoot: '/media'
         }),
         AuthModule,

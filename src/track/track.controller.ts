@@ -41,10 +41,10 @@ export class TrackController{
   @UseInterceptors(FileFieldsInterceptor([
     {name: 'audio', maxCount: 1}
   ]))
-  create(@UploadedFiles() files, @Body() dto: CreateTrackDto, @Req() req: Request){
+  async create(@UploadedFiles() files, @Body() dto: CreateTrackDto, @Req() req: Request){
     const {audio} = files
-    const audioPath = this.fileService.createFile(FileType.AUDIO, audio[0])
-    const coverPath = this.fileService.createFile(FileType.COVER, dto.cover64)
+    const audioPath = await this.fileService.createFile(FileType.AUDIO, audio[0])
+    const coverPath = await this.fileService.createFile(FileType.COVER, dto.cover64)
     return this.trackService.create(dto, audioPath, coverPath, req.user['id'])
   }
 }
