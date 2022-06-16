@@ -21,7 +21,7 @@ export class PlaylistController {
     }
     @UseGuards(AtGuard)
     @Post('removeTrack')
-    removeTrack(dto: AddToPlaylistDto, @Req() req: Request){
+    removeTrack(@Body() dto: AddToPlaylistDto, @Req() req: Request){
         return this.playlistService.removeTrack(dto, req.user['id'])
     }
     @Get(':id')
