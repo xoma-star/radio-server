@@ -31,6 +31,7 @@ export class FileService{
         fs.writeFileSync(path.resolve(filePath, fileNameFull), file.buffer)
         const {stderr} = await exec(`ffmpeg -i "${path.resolve(filePath, fileNameFull)}" -c:a libmp3lame -q:a 4 "${path.resolve(filePath, `${fileName}.mp3`)}"`)
         if(stderr.indexOf('error') >= 0) throw {message: stderr}
+        await exec(`rm ${path.resolve(filePath, fileNameFull)}`)
         return type + '/' + fileName + '.mp3'
       }
       return type + '/' + fileNameFull
