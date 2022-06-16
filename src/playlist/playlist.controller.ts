@@ -19,6 +19,11 @@ export class PlaylistController {
     add(@Body() dto: AddToPlaylistDto, @Req() req: Request){
         return this.playlistService.addToPlaylist(dto, req.user['id'])
     }
+    @UseGuards(AtGuard)
+    @Post('removeTrack')
+    removeTrack(dto: AddToPlaylistDto, @Req() req: Request){
+        return this.playlistService.removeTrack(dto, req.user['id'])
+    }
     @Get(':id')
     getOne(@Param('id') id: string){
         return this.playlistService.get(id)

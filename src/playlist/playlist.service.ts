@@ -1,25 +1,26 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {addDoc, collection, doc, updateDoc, arrayUnion, getDoc, query, where, getDocs} from "firebase/firestore";
+import {addDoc, collection, doc, updateDoc, arrayUnion, getDoc, query, where, getDocs, arrayRemove} from "firebase/firestore";
 import firestore from "../firestore";
 import AddToPlaylistDto from "./dto/add-to-playlist.dto";
 import PlaylistEntity from "./playlist.entity";
 
 @Injectable()
 export class PlaylistService {
-    async create(name: string, isPublic: boolean, owner: string){
+    async create(name: string, isPublic: boolean, owner: string): Promise<PlaylistEntity>{
         try {
             const col = collection(firestore, 'playlists')
-            const ref = await addDoc(col, {
+            const data = {
                 name,
                 isPublic,
                 owner,
                 tracks: [],
                 listens: 0,
-            })
+            }
+            const ref = await addDoc(col, data)
             if(!ref) throw {message: 'Неизвестная ошибка'}
             const userRef = doc(firestore, 'users', owner)
             await updateDoc(userRef, {playlists: arrayUnion(ref.id)})
-            return {id: ref.id}
+            return {id: ref.id, ...data}
         }catch (e) {
             throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -31,6 +32,7 @@ export class PlaylistService {
             const col = collection(firestore, 'playlists')
             if(Array.isArray(playlists)){
                 const fetchArray = playlists.slice(0, 10)
+                if(fetchArray.length <= 0) return []
                 const q = query(col, where('__name__', 'in', fetchArray))
                 const docs = await getDocs(q)
 
@@ -45,14 +47,27 @@ export class PlaylistService {
         }
     }
 
-    async addToPlaylist({playlistId, trackId}: AddToPlaylistDto, uid: string){
+    async addToPlaylist({playlistId, trackId}: AddToPlaylistDto, uid: string): Promise<PlaylistEntity>{
         try{
             if(!playlistId || !trackId || !uid) throw new HttpException('Неизвестная ошибка', HttpStatus.BAD_REQUEST)
             const playlistData = await this.get(playlistId)
             if(!playlistData) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             if(playlistData.owner !== uid) throw new HttpException('Нет прав для редактирования', HttpStatus.FORBIDDEN)
+            if(playlistData.tracks.indexOf(trackId) >= 0) throw new HttpException('Трек уже есть в плейлисте', HttpStatus.FORBIDDEN)
             await updateDoc(doc(firestore, 'playlists', playlistId), {tracks: arrayUnion(trackId)})
             return {...playlistData, tracks: [...playlistData.tracks, trackId]}
+        }catch (e) {throw e}
+    }
+
+    async removeTrack({playlistId, trackId}: AddToPlaylistDto, uid: string): Promise<PlaylistEntity>{
+        try {
+            if(!playlistId || !trackId || !uid) throw new HttpException('Неизвестная ошибка', HttpStatus.BAD_REQUEST)
+            const playlistData = await this.get(playlistId)
+            if(!playlistData) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
+            if(playlistData.owner !== uid) throw new HttpException('Нет прав для редактирования', HttpStatus.FORBIDDEN)
+            if(playlistData.tracks.indexOf(trackId) < 0) throw new HttpException('Трека нет в плейлисте', HttpStatus.NOT_FOUND)
+            await updateDoc(doc(firestore, 'playlists', playlistId), {tracks: arrayRemove(trackId)})
+            return {...playlistData, tracks: [...playlistData.tracks].filter(x => x !== trackId)}
         }catch (e) {throw e}
     }
 }
