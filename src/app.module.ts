@@ -7,6 +7,7 @@ import {UserModule} from "./user/user.module";
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
 import { PlaylistModule } from './playlist/playlist.module';
+import {AppController} from "./app.controller";
 
 @Module({
     imports: [
@@ -24,6 +25,9 @@ import { PlaylistModule } from './playlist/playlist.module';
         AuthModule,
         TokenModule,
         PlaylistModule
+    ],
+    controllers: [
+        AppController
     ]
 })
 export class AppModule {}
