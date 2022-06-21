@@ -1,5 +1,5 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {getDoc, doc, addDoc, collection, getDocs, query} from 'firebase/firestore'
+import {getDoc, doc, addDoc, collection, getDocs, query, limit, orderBy} from 'firebase/firestore'
 import firestore from "../firestore";
 import {CreateTrackDto} from "./dto/create-track.dto";
 import TrackEntity from "./track.entity";
@@ -21,6 +21,12 @@ export class TrackService{
         } catch (e) {
             throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
+    }
+    async getLatest(): Promise<TrackEntity[]>{
+        try {
+            const d = await getDocs(query(collection(firestore, 'tracks'), limit(30), orderBy('uploadTime', 'desc')))
+            return d.docs.map(v => {return {...v.data(), id: v.id} as TrackEntity})
+        }catch (e) {throw e}
     }
     async getAll(): Promise<TrackEntity[]>{
         try {
