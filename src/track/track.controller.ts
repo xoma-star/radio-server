@@ -32,7 +32,7 @@ export class TrackController{
   getMultiple(@Query('tracks') tracks: string){
     return this.trackService.getMultiple(tracks.split(','))
   }
-  @Get('getLatest')
+  @Get('latest')
   getLatest(){
     return this.trackService.getLatest()
   }
