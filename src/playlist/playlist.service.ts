@@ -4,28 +4,53 @@ import firestore from "../firestore";
 import AddToPlaylistDto from "./dto/add-to-playlist.dto";
 import PlaylistEntity from "./playlist.entity";
 import {TrackService} from "../track/track.service";
+import {UserService} from "../user/user.service";
 
 @Injectable()
 export class PlaylistService {
-    constructor(private trackService: TrackService) {}
+    constructor(
+        private trackService: TrackService,
+        private userService: UserService
+    ) {}
     async create(name: string, isPublic: boolean, owner: string): Promise<PlaylistEntity>{
         try {
+            if(!name.trim() || !owner) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
             const col = collection(firestore, 'playlists')
             const data = {
-                name,
+                name: name.trim().slice(0, 30),
                 isPublic,
                 owner,
                 tracks: [],
                 listens: 0,
             }
             const ref = await addDoc(col, data)
-            if(!ref) throw {message: 'Неизвестная ошибка'}
-            const userRef = doc(firestore, 'users', owner)
-            await updateDoc(userRef, {playlists: arrayUnion(ref.id)})
+            if(!ref) throw new HttpException('Не удалось создать', HttpStatus.INTERNAL_SERVER_ERROR)
+            await this.userService.addPlaylist(owner, ref.id)
             return {id: ref.id, ...data}
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+        }catch (e) {throw e}
+    }
+    async rename(playlistId: string, newName: string, userId: string){
+        try {
+            if(!playlistId || !userId || !newName.trim()) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+            const playlistRef = doc(firestore, 'playlists', playlistId)
+            const playlist = await getDoc(playlistRef)
+            if(!playlist.exists()) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
+            if(playlist.data().owner !== userId) throw new HttpException('Только владелец может изменить название', HttpStatus.FORBIDDEN)
+            await updateDoc(playlistRef, {name: newName.trim().slice(30)})
+            return {id: playlistRef.id, ...playlist.data(), name: newName.trim().slice(30)}
+        }catch (e) {throw e}
+    }
+    async delete(playlistId: string, userId: string){
+        try{
+            if(!playlistId || !userId) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+            const playlistRef = doc(firestore, 'playlists', playlistId)
+            const playlist = await getDoc(playlistRef)
+            if(!playlist.exists()) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
+            await this.userService.removePlaylist(userId, playlistId)
+            if(playlist.data().owner !== userId) throw new HttpException('Плейлист удален из вашей библиотеки', HttpStatus.FORBIDDEN)
+            else await updateDoc(playlistRef, {willExpire: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
+            return playlistId
+        }catch (e) {throw e}
     }
     async get(playlists: string): Promise<PlaylistEntity>
     async get(playlists: string[]): Promise<PlaylistEntity[]>
@@ -44,9 +69,7 @@ export class PlaylistService {
                 const docRef = await getDoc(doc(col, playlists))
                 return {id: docRef.id, ...docRef.data()} as PlaylistEntity
             }
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+        }catch (e) {throw e}
     }
 
     async addToPlaylist({playlistId, trackId}: AddToPlaylistDto, uid: string): Promise<PlaylistEntity>{

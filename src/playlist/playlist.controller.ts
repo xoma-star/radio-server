@@ -4,6 +4,7 @@ import {CreatePlaylistDto} from "./dto/create-playlist.dto";
 import {PlaylistService} from "./playlist.service";
 import {Request} from "express";
 import AddToPlaylistDto from "./dto/add-to-playlist.dto";
+import {RenamePlaylistDto} from "./dto/rename-playlist.dto";
 
 @Controller('playlist')
 export class PlaylistController {
@@ -13,6 +14,16 @@ export class PlaylistController {
     @Post('create')
     create(@Body() dto: CreatePlaylistDto, @Req() req: Request){
         return this.playlistService.create(dto.name, dto.isPublic, req.user['id'])
+    }
+    @UseGuards(AtGuard)
+    @Post('rename')
+    rename(@Body() dto: RenamePlaylistDto, @Req() req: Request){
+        return this.playlistService.rename(dto.playlistId, dto.newName, req.user['id'])
+    }
+    @UseGuards(AtGuard)
+    @Post('delete')
+    delete(@Body() dto: {playlistId: string}, @Req() req: Request){
+        return this.playlistService.delete(dto.playlistId, req.user['id'])
     }
     @UseGuards(AtGuard)
     @Post('add')
