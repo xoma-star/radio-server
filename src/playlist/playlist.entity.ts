@@ -5,4 +5,5 @@ export default class PlaylistEntity{
     readonly listens: number
     readonly tracks: string[]
     readonly owner: string
+    readonly willExpire?: number
 }

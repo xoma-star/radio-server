@@ -35,6 +35,13 @@ export class PlaylistController {
     removeTrack(@Body() dto: AddToPlaylistDto, @Req() req: Request){
         return this.playlistService.removeTrack(dto, req.user['id'])
     }
+    @Get('curated')
+    getCurated(){
+        return this.playlistService.get([
+            'WMNkI5n9XogcCIZEEmFk',
+            'tARZtRH6xjLd2zfmuSdA'
+        ])
+    }
     @Get(':id')
     getOne(@Param('id') id: string){
         return this.playlistService.get(id)
