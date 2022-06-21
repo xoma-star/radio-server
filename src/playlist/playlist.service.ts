@@ -3,9 +3,11 @@ import {addDoc, collection, doc, updateDoc, arrayUnion, getDoc, query, where, ge
 import firestore from "../firestore";
 import AddToPlaylistDto from "./dto/add-to-playlist.dto";
 import PlaylistEntity from "./playlist.entity";
+import {TrackService} from "../track/track.service";
 
 @Injectable()
 export class PlaylistService {
+    constructor(private trackService: TrackService) {}
     async create(name: string, isPublic: boolean, owner: string): Promise<PlaylistEntity>{
         try {
             const col = collection(firestore, 'playlists')
@@ -54,6 +56,8 @@ export class PlaylistService {
             if(!playlistData) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             if(playlistData.owner !== uid) throw new HttpException('Нет прав для редактирования', HttpStatus.FORBIDDEN)
             if(playlistData.tracks.indexOf(trackId) >= 0) throw new HttpException('Трек уже есть в плейлисте', HttpStatus.FORBIDDEN)
+            const data = await this.trackService.getOne(trackId)
+            if(!data) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
             await updateDoc(doc(firestore, 'playlists', playlistId), {tracks: arrayUnion(trackId)})
             return {...playlistData, tracks: [...playlistData.tracks, trackId]}
         }catch (e) {throw e}

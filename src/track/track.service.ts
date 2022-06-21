@@ -39,11 +39,9 @@ export class TrackService{
     async getOne(id: string): Promise<TrackEntity>{
         try{
             const docRef = await getDoc(doc(firestore, 'tracks', id))
-            if(!docRef.exists()) throw {message: 'Track not found'}
+            if(!docRef.exists()) throw new HttpException('Не найдено', HttpStatus.NOT_FOUND)
             return {...docRef.data(), id: docRef.id} as TrackEntity
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.NOT_FOUND)
-        }
+        }catch (e) {throw e}
     }
     async getMultiple(tracks: string[]): Promise<TrackEntity[]>{
         try{
