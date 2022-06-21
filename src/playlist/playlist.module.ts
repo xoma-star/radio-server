@@ -5,6 +5,7 @@ import {TrackService} from "../track/track.service";
 
 @Module({
   providers: [PlaylistService, TrackService],
+  imports: [TrackService],
   controllers: [PlaylistController]
 })
 export class PlaylistModule {}

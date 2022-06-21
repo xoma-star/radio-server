@@ -9,8 +9,7 @@ import {JWT_REFRESH_SECRET} from "../config";
 
 @Injectable()
 export class AuthService {
-    constructor(private tokenService: TokenService, private jwtService: JwtService) {
-    }
+    constructor(private tokenService: TokenService, private jwtService: JwtService) {}
     async loginLocal(dto: AuthLoginDto){
         try {
             if(dto?.name?.length < 1 || dto?.password?.length < 1) throw {message: 'Пользователь не найден'}
