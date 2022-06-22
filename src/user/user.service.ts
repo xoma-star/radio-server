@@ -26,7 +26,10 @@ export class UserService{
         try{
             if(!playlist || !id) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
             const userRef = doc(firestore, 'users', id)
+            const data = await this.getData(id)
+            if(data.playlists.indexOf(playlist) >= 0) throw new HttpException('Плейлист уже в библиотеке', HttpStatus.FORBIDDEN)
             await updateDoc(userRef, {playlists: arrayUnion(playlist)})
+            return [...data.playlists, playlist]
         }catch (e) {throw e}
     }
 
@@ -34,6 +37,8 @@ export class UserService{
         try {
             if(!playlist || !id) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
             const userRef = doc(firestore, 'users', id)
+            const data = await this.getData(id)
+            if(data.playlists.indexOf(playlist) < 0) throw new HttpException('Плейлиста нет в библиотеке', HttpStatus.FORBIDDEN)
             await updateDoc(userRef, {playlists: arrayRemove(playlist)})
         }catch (e) {throw e}
     }
