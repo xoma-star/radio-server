@@ -47,7 +47,7 @@ export class PlaylistService {
             const playlist = await getDoc(playlistRef)
             if(!playlist.exists()) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             await this.userService.removePlaylist(userId, playlistId)
-            if(playlist.data().owner !== userId) throw new HttpException('Плейлист удален из вашей библиотеки', HttpStatus.FORBIDDEN)
+            if(playlist.data().owner !== userId) throw new HttpException('Плейлист удален из вашей библиотеки', HttpStatus.OK)
             else await updateDoc(playlistRef, {willExpire: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
             return playlistId
         }catch (e) {throw e}
