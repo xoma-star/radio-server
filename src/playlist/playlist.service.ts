@@ -36,8 +36,8 @@ export class PlaylistService {
             const playlist = await getDoc(playlistRef)
             if(!playlist.exists()) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             if(playlist.data().owner !== userId) throw new HttpException('Только владелец может изменить название', HttpStatus.FORBIDDEN)
-            await updateDoc(playlistRef, {name: newName.trim().slice(30)})
-            return {id: playlistRef.id, ...playlist.data(), name: newName.trim().slice(30), isPublic}
+            await updateDoc(playlistRef, {name: newName.trim().slice(0, 30)})
+            return {id: playlistRef.id, ...playlist.data(), name: newName.trim().slice(0, 30), isPublic}
         }catch (e) {throw e}
     }
     async delete(playlistId: string, userId: string){
