@@ -28,13 +28,17 @@ export class TrackService{
             return d.docs.map(v => {return {...v.data(), id: v.id} as TrackEntity})
         }catch (e) {throw e}
     }
+    async getRandom(count: number): Promise<TrackEntity[]>{
+        try{
+            const all = await this.getAll()
+            return all.sort(() => 0.5 - Math.random()).slice(0, count)
+        }catch (e) {throw e}
+    }
     async getAll(): Promise<TrackEntity[]>{
         try {
             const d = await getDocs(query(collection(firestore, 'tracks')))
             return d.docs.map(v => {return {...v.data(), id: v.id} as TrackEntity})
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+        }catch (e) {throw e}
     }
     async getOne(id: string): Promise<TrackEntity>{
         try{
