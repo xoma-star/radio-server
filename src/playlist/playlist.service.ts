@@ -29,7 +29,7 @@ export class PlaylistService {
             return {id: ref.id, ...data}
         }catch (e) {throw e}
     }
-    async rename(playlistId: string, newName: string, userId: string){
+    async rename(playlistId: string, newName: string, isPublic: boolean, userId: string){
         try {
             if(!playlistId || !userId || !newName.trim()) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
             const playlistRef = doc(firestore, 'playlists', playlistId)
@@ -37,7 +37,7 @@ export class PlaylistService {
             if(!playlist.exists()) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             if(playlist.data().owner !== userId) throw new HttpException('Только владелец может изменить название', HttpStatus.FORBIDDEN)
             await updateDoc(playlistRef, {name: newName.trim().slice(30)})
-            return {id: playlistRef.id, ...playlist.data(), name: newName.trim().slice(30)}
+            return {id: playlistRef.id, ...playlist.data(), name: newName.trim().slice(30), isPublic}
         }catch (e) {throw e}
     }
     async delete(playlistId: string, userId: string){

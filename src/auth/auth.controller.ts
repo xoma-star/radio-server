@@ -27,7 +27,7 @@ export class AuthController{
     async logout(@Req() req: Request, @Res() res: Response){
         const {refreshToken} = req.cookies
         await this.authService.logout(refreshToken)
-        res.clearCookie('refreshToken')
+        res.clearCookie('refreshToken', {httpOnly: true, maxAge: 0, secure: true, sameSite: 'none'})
         res.send()
     }
     @UseGuards(RtGuard)

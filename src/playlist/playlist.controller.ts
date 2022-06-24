@@ -18,7 +18,7 @@ export class PlaylistController {
     @UseGuards(AtGuard)
     @Post('rename')
     rename(@Body() dto: RenamePlaylistDto, @Req() req: Request){
-        return this.playlistService.rename(dto.playlistId, dto.newName, req.user['id'])
+        return this.playlistService.rename(dto.playlistId, dto.newName, dto.isPublic, req.user['id'])
     }
     @UseGuards(AtGuard)
     @Post('delete')
