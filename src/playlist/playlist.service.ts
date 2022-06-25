@@ -1,6 +1,4 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {addDoc, collection, doc, updateDoc, arrayUnion, getDoc, query, where, getDocs, arrayRemove} from "firebase/firestore";
-import firestore from "../firestore";
 import AddToPlaylistDto from "./dto/add-to-playlist.dto";
 import PlaylistEntity from "./playlist.entity";
 import {TrackService} from "../track/track.service";
@@ -79,8 +77,9 @@ export class PlaylistService {
             if(playlistData.tracks.indexOf(trackId) >= 0) throw new HttpException('Трек уже есть в плейлисте', HttpStatus.FORBIDDEN)
             const data = await this.trackService.getOne(trackId)
             if(!data) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
-            await updateDoc(doc(firestore, 'playlists', playlistId), {tracks: arrayUnion(trackId)})
-            return {...playlistData, tracks: [...playlistData.tracks, trackId]}
+            playlistData.tracks.push(trackId)
+            await session.saveChanges()
+            return playlistData
         }catch (e) {throw e}
     }
 
@@ -91,8 +90,9 @@ export class PlaylistService {
             if(!playlistData) throw new HttpException('Плейлист не найден', HttpStatus.NOT_FOUND)
             if(playlistData.owner !== uid) throw new HttpException('Нет прав для редактирования', HttpStatus.FORBIDDEN)
             if(playlistData.tracks.indexOf(trackId) < 0) throw new HttpException('Трека нет в плейлисте', HttpStatus.NOT_FOUND)
-            await updateDoc(doc(firestore, 'playlists', playlistId), {tracks: arrayRemove(trackId)})
-            return {...playlistData, tracks: [...playlistData.tracks].filter(x => x !== trackId)}
+            playlistData.tracks.splice(playlistData.tracks.indexOf(trackId), 1)
+            await session.saveChanges()
+            return playlistData
         }catch (e) {throw e}
     }
 }

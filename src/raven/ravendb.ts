@@ -12,4 +12,5 @@ const authOptions: IAuthOptions = {
 const store = new DocumentStore('https://a.free.xoma-star.ravendb.cloud', 'serenity', authOptions)
 store.initialize()
 const session = store.openSession()
+session.advanced.maxNumberOfRequestsPerSession = Infinity
 export default session

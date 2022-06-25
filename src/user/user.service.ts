@@ -8,7 +8,7 @@ export class UserService{
     async getData(id: string): Promise<UserEntity>{
         try {
             if(!id) throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND)
-            return await session.load(id)
+            return await session.load<UserEntity>(id)
         }catch (e) {throw e}
     }
 

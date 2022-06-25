@@ -38,8 +38,7 @@ export class PlaylistController {
     @Get('curated')
     getCurated(){
         return this.playlistService.get([
-            'WMNkI5n9XogcCIZEEmFk',
-            'tARZtRH6xjLd2zfmuSdA'
+            '664180b9-689a-40b8-ac95-2d9c22fa30ec'
         ])
     }
     @Get(':id')

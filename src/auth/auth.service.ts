@@ -5,8 +5,8 @@ import * as uuid from 'uuid';
 import {TokenService} from "../token/token.service";
 import {JwtService} from "@nestjs/jwt";
 import {JWT_REFRESH_SECRET} from "../config";
-import session from "../raven/ravendb";
 import UserEntity from "../user/user.entity";
+import session from "../raven/ravendb";
 
 @Injectable()
 export class AuthService {
