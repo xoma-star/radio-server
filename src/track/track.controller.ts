@@ -36,6 +36,10 @@ export class TrackController{
   addListen(@Query('id') id: string){
     return this.trackService.addListen(id)
   }
+  @Get('mostListened')
+  getMostListened(){
+    return this.trackService.getMostListened()
+  }
   @Get('getMultiple')
   getMultiple(@Query('tracks') tracks: string){
     return this.trackService.getMultiple(tracks.split(','))

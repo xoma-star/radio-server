@@ -32,6 +32,14 @@ export class TrackService{
             await session.saveChanges()
         }catch (e) {}
     }
+    async getMostListened(): Promise<TrackEntity[]>{
+        try{
+            return await session.query<TrackEntity>({collection: 'tracks'})
+                .orderByDescending('listens')
+                .take(30)
+                .all()
+        }catch (e) {throw e}
+    }
     async getLatest(): Promise<TrackEntity[]>{
         try {
             return await session.query<TrackEntity>({collection: 'tracks'})
