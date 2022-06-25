@@ -26,10 +26,11 @@ export class TrackService{
     async addListen(id: string): Promise<void>{
         try{
             const track = await this.getOne(id)
-            if(track.listens > -1) track.listens++
+            if(!track) return
+            if(track.listens > -1) track.listens = track.listens + 1
             else track.listens = 1
             await session.saveChanges()
-        }catch (e) {throw e}
+        }catch (e) {}
     }
     async getLatest(): Promise<TrackEntity[]>{
         try {
