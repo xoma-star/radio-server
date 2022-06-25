@@ -1,8 +1,8 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {JwtService} from "@nestjs/jwt";
 import {JWT_ACCESS_SECRET, JWT_REFRESH_SECRET} from "../config";
-import {addDoc, collection, getDocs, limit, query, updateDoc, where, deleteDoc} from "firebase/firestore";
-import firestore from "../firestore";
+import session from "../raven/ravendb";
+import TokenEntity from "./token.entity";
 
 @Injectable()
 export class TokenService {
@@ -19,36 +19,41 @@ export class TokenService {
     }
 
     async deleteTokens(token: string){
-        if(!token) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
-        const c = collection(firestore, 'tokens')
-        const q = query(c, where('refreshToken', '==', token), limit(1))
-        const ref = await getDocs(q)
-        if(ref.docs.length > 0) await deleteDoc(ref.docs[0].ref)
-        else throw new HttpException('Неизвестная ошибка', HttpStatus.INTERNAL_SERVER_ERROR)
+        try {
+            if(!token) throw new HttpException('Невалидный токен. Войдите в аккаунт заново', HttpStatus.FORBIDDEN)
+            const tokenDB = await session.query<TokenEntity>({collection: 'tokens'})
+                .whereEquals('refreshToken', token)
+                .first()
+            if(tokenDB) await session.delete(tokenDB)
+            await session.saveChanges()
+        }catch (e) {throw e}
     }
 
     async verifyRefreshToken(token: string){
-        if(!token) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
-        const c = collection(firestore, 'tokens')
-        const q = query(c, where('refreshToken', '==', token), limit(1))
-        const ref = await getDocs(q)
-        return ref.docs.length > 0
-
+        if(!token) throw new HttpException('Ошибка авторизации', HttpStatus.FORBIDDEN)
+        try{
+            const d = await session.query({collection: 'tokens'})
+                .whereEquals('refreshToken', token)
+                .all()
+            if(d.length !== 1) throw new HttpException('Ошибка авторизации', HttpStatus.FORBIDDEN)
+            return d.length > 0
+        }catch (e) {throw e}
     }
 
-    async addTokenToFirestore(id: string, token: string){
-        if(!token || !id) throw new HttpException('Неизвестная ошибка', HttpStatus.FORBIDDEN)
-        const c = collection(firestore, 'tokens')
-        const q = query(c, where('id', '==', id), limit(1))
-        const ref = await getDocs(q)
-        const data = {refreshToken: token, id}
-        if(ref.docs.length > 0) {
-            await updateDoc(ref.docs[0].ref, {refreshToken: token})
-            return ref.docs[0]
-        }
-        else{
-            return await addDoc(c, data)
-        }
-
+    async saveToken(id: string, token: string){
+        try {
+            if(!token || !id) throw new HttpException('Невалидный токен', HttpStatus.FORBIDDEN)
+            const tokenDB = await session.query<TokenEntity>({collection: 'tokens'})
+                .whereEquals('user', id)
+                .all()
+            if(tokenDB.length !== 1){
+                await session.store({user: id, refreshToken: token, "@metadata": {"@collection": 'tokens'}}, null)
+                await session.saveChanges()
+            }
+            else{
+                tokenDB[0].refreshToken = token
+                await session.saveChanges()
+            }
+        }catch (e) {throw e}
     }
 }

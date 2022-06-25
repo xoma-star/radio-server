@@ -1,53 +1,56 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {AuthLoginDto, AuthSignUpDto} from "./dto/auth.dto";
 import {createHmac} from "node:crypto";
-import {addDoc, collection, getDocs, limit, query, where} from "firebase/firestore";
-import firestore from "../firestore";
+import * as uuid from 'uuid';
 import {TokenService} from "../token/token.service";
 import {JwtService} from "@nestjs/jwt";
 import {JWT_REFRESH_SECRET} from "../config";
+import session from "../raven/ravendb";
+import UserEntity from "../user/user.entity";
 
 @Injectable()
 export class AuthService {
     constructor(private tokenService: TokenService, private jwtService: JwtService) {}
     async loginLocal(dto: AuthLoginDto){
         try {
-            if(dto?.name?.length < 1 || dto?.password?.length < 1) throw {message: 'Пользователь не найден'}
-            const q = query(collection(firestore, 'users'), where('name', '==', dto.name), limit(1))
-            const doc = await getDocs(q)
-            if(doc.docs.length < 1) throw {message: 'Не удалось найти пользователя'}
-            const pass = createHmac('sha256', dto.password).digest('hex')
-            const userRef = doc.docs[0]
-            const user = userRef.data()
-            if(user.password !== pass) throw {message: 'Не удалось найти пользователя'}
-            const {accessToken, refreshToken} = this.tokenService.createTokens(userRef.id)
-            await this.tokenService.addTokenToFirestore(userRef.id, refreshToken)
-            return {accessToken, refreshToken, id: userRef.id}
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+            if(dto?.name?.length < 1 || dto?.password?.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
+            const users = await session.query<UserEntity>({collection: 'users'})
+                .whereEquals('name', dto.name)
+                .all()
+            if(users.length !== 1) throw new HttpException('Пользователь не найден', HttpStatus.UNAUTHORIZED)
+            const user = users[0]
+            if(user.password !== createHmac('sha256', dto.password).digest('hex')) throw new HttpException('Пользователь не найден', HttpStatus.UNAUTHORIZED)
+            const {accessToken, refreshToken} = this.tokenService.createTokens(user.id)
+            await this.tokenService.saveToken(user.id, refreshToken)
+            return {accessToken, refreshToken, id: user.id}
+        }catch (e) {throw e}
     }
     async signupLocal(dto: AuthSignUpDto){
         try {
-            if(dto.password.length < 1 || dto.name.length < 1 || dto.email.length < 1) throw {message: 'Поля не должны быть пустыми.'}
+            if(dto.password.length < 1 || dto.name.length < 1 || dto.email.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
             const data = {
                 ...dto,
                 signUpDate: new Date().getTime(),
                 password: createHmac('sha256', dto.password).digest('hex'),
-                playlists: []
+                playlists: [],
+                id: uuid.v4(),
+                "@metadata": {
+                    "@collection": "users"
+                }
             }
-            const ref = collection(firestore, 'users')
-            const checkName = await getDocs(query(ref, where('name', '==', data.name), limit(1)))
-            if(checkName.docs.length > 0) throw {message: 'Указанное имя пользователя уже занято'}
-            const checkEmail = await getDocs(query(ref, where('email', '==', data.email), limit(1)))
-            if(checkEmail.docs.length > 0) throw {message: 'Указанная почта уже используется другим аккаунтом'}
-            const docRef = await addDoc(collection(firestore, 'users'), data)
-            const {accessToken, refreshToken} = this.tokenService.createTokens(docRef.id)
-            await this.tokenService.addTokenToFirestore(docRef.id, refreshToken)
-            return {accessToken, refreshToken, id: docRef.id}
-        }catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+            const names = await session.query({collection: 'users'})
+                .whereEquals('name', data.name)
+                .any()
+            if(names) throw new HttpException('Указанное имя пользователя уже занято', HttpStatus.FORBIDDEN)
+            const emails = await session.query({collection: 'users'})
+                .whereEquals('email', data.email)
+                .any()
+            if(emails) throw new HttpException('Указанная почта уже используется другим аккаунтом', HttpStatus.FORBIDDEN)
+            const {accessToken, refreshToken} = this.tokenService.createTokens(data.id)
+            await session.store(data, data.id)
+            await session.saveChanges()
+            return {accessToken, refreshToken, id: data.id}
+        }catch (e) {throw e}
     }
 
     async logout(token: string){
@@ -59,10 +62,8 @@ export class AuthService {
         if(!id) throw new HttpException('Неизвестная ошибка', HttpStatus.UNAUTHORIZED)
         try{
             const {accessToken, refreshToken} = this.tokenService.createTokens(id)
-            await this.tokenService.addTokenToFirestore(id, refreshToken)
+            await this.tokenService.saveToken(id, refreshToken)
             return {accessToken, refreshToken, id}
-        }catch (e) {
-            throw new HttpException('Неизвестная ошибка', HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+        }catch (e) {throw e}
     }
 }

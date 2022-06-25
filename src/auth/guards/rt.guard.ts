@@ -11,6 +11,6 @@ export class RtGuard extends AuthGuard('jwt-refresh'){
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request: Request = context.switchToHttp().getRequest()
         if(!request?.cookies?.refreshToken) return false
-        return  await this.tokenService.verifyRefreshToken(request?.cookies?.refreshToken)
+        return await this.tokenService.verifyRefreshToken(request?.cookies?.refreshToken)
     }
 }
