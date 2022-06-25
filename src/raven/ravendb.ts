@@ -2,7 +2,7 @@ import {DocumentStore, IAuthOptions} from 'ravendb'
 import * as fs from "fs";
 import * as path from "path";
 
-const certificate = path.resolve(__dirname, "local.pfx");
+const certificate = path.resolve("/root/", "local.pfx");
 
 const authOptions: IAuthOptions = {
     certificate: fs.readFileSync(certificate),
