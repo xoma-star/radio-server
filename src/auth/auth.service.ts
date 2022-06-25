@@ -27,9 +27,10 @@ export class AuthService {
     }
     async signupLocal(dto: AuthSignUpDto){
         try {
-            if(dto.password.length < 1 || dto.name.length < 1 || dto.email.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
+            if (dto.password.length < 1 || dto.name.length < 1 || dto.email.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
             const data = {
                 ...dto,
+                name: dto.name.replace(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/igm, ''),
                 signUpDate: new Date().getTime(),
                 password: createHmac('sha256', dto.password).digest('hex'),
                 playlists: [],
@@ -38,14 +39,15 @@ export class AuthService {
                     "@collection": "users"
                 }
             }
+            if (data.name.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
             const names = await session.query({collection: 'users'})
                 .whereEquals('name', data.name)
                 .any()
-            if(names) throw new HttpException('Указанное имя пользователя уже занято', HttpStatus.FORBIDDEN)
+            if (names) throw new HttpException('Указанное имя пользователя уже занято', HttpStatus.FORBIDDEN)
             const emails = await session.query({collection: 'users'})
                 .whereEquals('email', data.email)
                 .any()
-            if(emails) throw new HttpException('Указанная почта уже используется другим аккаунтом', HttpStatus.FORBIDDEN)
+            if (emails) throw new HttpException('Указанная почта уже используется другим аккаунтом', HttpStatus.FORBIDDEN)
             const {accessToken, refreshToken} = this.tokenService.createTokens(data.id)
             await session.store(data, data.id)
             await session.saveChanges()

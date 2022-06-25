@@ -4,5 +4,5 @@ export default class UserEntity{
     readonly name: string
     readonly password: string
     readonly signUpDate: number
-    readonly playlists: string[]
+    playlists: string[]
 }

@@ -1,8 +1,8 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {getDoc, doc, addDoc, collection, getDocs, query, limit, orderBy} from 'firebase/firestore'
-import firestore from "../firestore";
 import {CreateTrackDto} from "./dto/create-track.dto";
 import TrackEntity from "./track.entity";
+import * as uuid from "uuid";
+import session from "../raven/ravendb";
 
 @Injectable()
 export class TrackService{
@@ -14,18 +14,20 @@ export class TrackService{
                 path: audio,
                 cover: cover,
                 uploadedBy: uid,
-                uploadTime: new Date().getTime()
+                uploadTime: new Date().getTime(),
+                id: uuid.v4()
             }
-            const docRef = await addDoc(collection(firestore, 'tracks'), data)
-            return {...data, id: docRef.id}
-        } catch (e) {
-            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+            await session.store({...data, "@metadata": {"@collection": "tracks"}})
+            await session.saveChanges()
+            return data
+        } catch (e) {throw e}
     }
     async getLatest(): Promise<TrackEntity[]>{
         try {
-            const d = await getDocs(query(collection(firestore, 'tracks'), limit(30), orderBy('uploadTime', 'desc')))
-            return d.docs.map(v => {return {...v.data(), id: v.id} as TrackEntity})
+            return await session.query<TrackEntity>({collection: 'tracks'})
+                .orderByDescending('uploadTime')
+                .take(30)
+                .all()
         }catch (e) {throw e}
     }
     async getRandom(count: number): Promise<TrackEntity[]>{
@@ -36,22 +38,20 @@ export class TrackService{
     }
     async getAll(): Promise<TrackEntity[]>{
         try {
-            const d = await getDocs(query(collection(firestore, 'tracks')))
-            return d.docs.map(v => {return {...v.data(), id: v.id} as TrackEntity})
+            return await session.query<TrackEntity>({collection: 'tracks'}).all()
         }catch (e) {throw e}
     }
     async getOne(id: string): Promise<TrackEntity>{
         try{
-            const docRef = await getDoc(doc(firestore, 'tracks', id))
-            if(!docRef.exists()) throw new HttpException('Не найдено', HttpStatus.NOT_FOUND)
-            return {...docRef.data(), id: docRef.id} as TrackEntity
+            return await session.load<TrackEntity>(id)
         }catch (e) {throw e}
     }
     async getMultiple(tracks: string[]): Promise<TrackEntity[]>{
         try{
             if(tracks.length < 1) throw new HttpException('null', HttpStatus.NOT_FOUND)
-            const all = await this.getAll()
-            return all.filter(x => tracks.indexOf(x.id) >= 0)
+            return await session.query<TrackEntity>({collection: 'tracks'})
+                .whereIn('id', tracks)
+                .all()
         }catch (e) {throw e}
     }
 }
