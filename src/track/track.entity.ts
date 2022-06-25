@@ -6,4 +6,5 @@ export default class TrackEntity{
     readonly path: string
     readonly uploadTime: number
     readonly author: string
+    listens: number
 }

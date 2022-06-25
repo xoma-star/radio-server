@@ -32,6 +32,10 @@ export class TrackController{
   getRandom(@Query('count') count: number){
     return this.trackService.getRandom(count)
   }
+  @Get('addListen')
+  addListen(@Query('id') id: string){
+    return this.trackService.addListen(id)
+  }
   @Get('getMultiple')
   getMultiple(@Query('tracks') tracks: string){
     return this.trackService.getMultiple(tracks.split(','))

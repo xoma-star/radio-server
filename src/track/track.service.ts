@@ -15,12 +15,21 @@ export class TrackService{
                 cover: cover,
                 uploadedBy: uid,
                 uploadTime: new Date().getTime(),
-                id: uuid.v4()
+                id: uuid.v4(),
+                listens: 0
             }
             await session.store({...data, "@metadata": {"@collection": "tracks"}})
             await session.saveChanges()
             return data
         } catch (e) {throw e}
+    }
+    async addListen(id: string): Promise<void>{
+        try{
+            const track = await this.getOne(id)
+            if(track.listens > -1) track.listens++
+            else track.listens = 1
+            await session.saveChanges()
+        }catch (e) {throw e}
     }
     async getLatest(): Promise<TrackEntity[]>{
         try {
