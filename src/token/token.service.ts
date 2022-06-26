@@ -23,8 +23,8 @@ export class TokenService {
             if(!token) throw new HttpException('Невалидный токен. Войдите в аккаунт заново', HttpStatus.FORBIDDEN)
             const tokenDB = await session.query<TokenEntity>({collection: 'tokens'})
                 .whereEquals('refreshToken', token)
-                .first()
-            if(tokenDB) await session.delete(tokenDB)
+                .all()
+            if(tokenDB.length > 0) await session.delete(tokenDB)
             await session.saveChanges()
         }catch (e) {throw e}
     }
