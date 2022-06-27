@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpException,
   Param,
   Post,
   Query,
@@ -58,6 +58,7 @@ export class TrackController{
     {name: 'audio', maxCount: 1}
   ]))
   async create(@UploadedFiles() files, @Body() dto: CreateTrackDto, @Req() req: Request){
+    if(req.user['id'] !== '259a6a14-ba44-4aeb-8d86-d8aa4a0c4861') throw new HttpException('Недостаточно прав для выполнения данной операции.', 403)
     const {audio} = files
     const audioPath = await this.fileService.createFile(FileType.AUDIO, audio[0])
     const coverPath = await this.fileService.createFile(FileType.COVER, dto.cover64)
