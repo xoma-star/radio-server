@@ -24,7 +24,7 @@ export class TokenService {
             const tokenDB = await session.query<TokenEntity>({collection: 'tokens'})
                 .whereEquals('refreshToken', token)
                 .all()
-            if(tokenDB.length > 0) await session.delete(tokenDB)
+            if(tokenDB.length > 0) await session.delete(tokenDB[0])
             await session.saveChanges()
         }catch (e) {throw e}
     }
