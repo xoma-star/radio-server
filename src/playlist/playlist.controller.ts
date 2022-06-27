@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, Req, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, Query, Req, UseGuards} from '@nestjs/common';
 import {AtGuard} from "../auth/guards";
 import {CreatePlaylistDto} from "./dto/create-playlist.dto";
 import {PlaylistService} from "./playlist.service";
@@ -40,6 +40,10 @@ export class PlaylistController {
         return this.playlistService.get([
             '664180b9-689a-40b8-ac95-2d9c22fa30ec'
         ])
+    }
+    @Get('random')
+    getRandom(@Query() query: {count: number}){
+        return this.playlistService.getRandom(query.count)
     }
     @Get(':id')
     getOne(@Param('id') id: string){

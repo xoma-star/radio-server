@@ -29,6 +29,12 @@ export class PlaylistService {
             return data
         }catch (e) {throw e}
     }
+    async getRandom(count: number): Promise<PlaylistEntity[]>{
+        const p = await session.query<PlaylistEntity>({collection: 'playlists'})
+            .whereEquals('isPublic', true)
+            .all()
+        return p.sort(() => Math.random() - 0.5).slice(0, count)
+    }
     async rename(playlistId: string, newName: string, isPublic: boolean, userId: string){
         try {
             if(!playlistId || !userId || !newName.trim()) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
