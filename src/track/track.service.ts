@@ -61,7 +61,9 @@ export class TrackService{
     }
     async getOne(id: string): Promise<TrackEntity>{
         try{
-            return await session.load<TrackEntity>(id)
+            const d = await session.query<TrackEntity>({collection: 'tracks'}).whereEquals('id', id).all()
+            if(d.length < 1) return null
+            return d[0]
         }catch (e) {throw e}
     }
     async getMultiple(tracks: string[]): Promise<TrackEntity[]>{
