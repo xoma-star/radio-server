@@ -21,6 +21,13 @@ export class AuthController{
         res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 14 * 24 * 60 * 60 * 1000, secure: true, sameSite: 'none'})
         res.send({accessToken, refreshToken, id})
     }
+    @Post('vk')
+    @HttpCode(HttpStatus.OK)
+    async loginVK(@Body() dto: {email: string, sign: string}, @Res() res: Response){
+        const {id, refreshToken, accessToken, password} = await this.authService.loginVK(dto.email, dto.sign)
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 14 * 24 * 60 * 60 * 1000, secure: true, sameSite: 'none'})
+        res.send({id, accessToken, password, refreshToken})
+    }
     @UseGuards(AtGuard)
     @Get('logout')
     @HttpCode(HttpStatus.OK)

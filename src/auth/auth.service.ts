@@ -30,7 +30,7 @@ export class AuthService {
             if (dto.password.length < 1 || dto.name.length < 1 || dto.email.length < 1) throw new HttpException('Не все поля заполнены', HttpStatus.BAD_REQUEST)
             const data = {
                 ...dto,
-                name: dto.name.replace(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/igm, ''),
+                name: dto.name.trim(),
                 signUpDate: new Date().getTime(),
                 password: createHmac('sha256', dto.password).digest('hex'),
                 playlists: [],
@@ -52,6 +52,25 @@ export class AuthService {
             await session.store(data, data.id)
             await session.saveChanges()
             return {accessToken, refreshToken, id: data.id}
+        }catch (e) {throw e}
+    }
+
+    async loginVK(email: string, sign: string){
+        try{
+            const users = await session.query<UserEntity>({collection: 'users'})
+                .whereEquals('email', email)
+                .all()
+            if(users.length === 0) {
+                const data = await this.signupLocal({email: email, name: email, password: sign.slice(0, 6)})
+                await this.tokenService.saveToken(data.id, data.refreshToken)
+                return {...data, password: sign.slice(0, 6)}
+            }
+            else{
+                const user = users[0]
+                const {accessToken, refreshToken} = this.tokenService.createTokens(user.id)
+                await this.tokenService.saveToken(user.id, refreshToken)
+                return {accessToken, refreshToken, id: user.id, password: null}
+            }
         }catch (e) {throw e}
     }
 
