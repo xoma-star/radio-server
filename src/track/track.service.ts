@@ -3,6 +3,7 @@ import {CreateTrackDto} from "./dto/create-track.dto";
 import TrackEntity from "./track.entity";
 import * as uuid from "uuid";
 import session from "../raven/ravendb";
+import similarity from "../misc/search";
 
 @Injectable()
 export class TrackService{
@@ -21,6 +22,15 @@ export class TrackService{
             await session.store({...data, "@metadata": {"@collection": "tracks"}})
             await session.saveChanges()
             return data
+        } catch (e) {throw e}
+    }
+    async search(query: string): Promise<TrackEntity[]>{
+        try{
+            if(query.trim().length < 1) throw new HttpException('Пустой запрос', HttpStatus.BAD_REQUEST)
+            const tracks = await session.query<TrackEntity>({collection: 'tracks'}).all()
+            return tracks.filter(x => {
+                if(similarity(query, x.author) >= 0.5 || similarity(query, x.name) >= 0.5) return x
+            })
         } catch (e) {throw e}
     }
     async addListen(id: string): Promise<void>{

@@ -32,6 +32,10 @@ export class TrackController{
   getRandom(@Query('count') count: number){
     return this.trackService.getRandom(count)
   }
+  @Get('search')
+  searchTracks(@Query('query') query: string){
+    return this.trackService.search(query)
+  }
   @Get('addListen')
   addListen(@Query('id') id: string){
     return this.trackService.addListen(id)
